@@ -15,7 +15,7 @@ import org.apache.dubbo.rpc.cluster.Constants;
 
 
 
-public class DubboSim {
+public class DubboExtension {
 
 	/**
 	 * 1）在那台机上暴露什么方法。例如：在当地址：localhost，端口：8899，上暴露方法：UserService.getUserNameByID()
@@ -24,15 +24,7 @@ public class DubboSim {
 	 * 4）通信框架是什么。例如netty,mina
 	 * 5）将暴露的方法要注册到哪个地方去，以便消费端获取访问地址。如zookeeper，redis
 	 */
-	public static void run() {
-		
-		ExtensionLoader loader = ExtensionLoader.getExtensionLoader(Protocol.class);
-		loader.getAdaptiveExtension();
-		Object obj = loader.getExtension("dubbo");
-		System.out.println(obj);
-
-		
-		
+	public static void main(String[] args) {
 		//定义要暴露的方法使用的dubbo作为序列化协议，以及方法所在的服务器地址和端口号
 		URL methodUrl = new URL("dubbo","127.0.0.1",8899,IUserService.class.getName())
 				.addParameter("interface", IUserService.class.getName())//暴露的服务
@@ -61,7 +53,7 @@ public class DubboSim {
         Exporter<?> exporter = protocol.export(invoker);
         System.out.println("^^^^^^^^^^服务端启动成功^^^^^^^^^^");
         
-        
+        //客户端发起调用
         ReferenceConfig<IUserService> reference = new ReferenceConfig<IUserService>(); 
         reference.setApplication(new ApplicationConfig("client"));
         reference.setRegistry(new RegistryConfig("127.0.0.1:2181","zookeeper")); 
@@ -69,13 +61,15 @@ public class DubboSim {
         String ret = reference.get().getUserNameByID(1234);
         System.out.println("调用结果："+ret);
 	}
-	
-	public static void main(String[] args) {
-		run();
-		try {
-			Thread.currentThread().sleep(300*1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+}
+interface IUserService {
+
+	public String getUserNameByID(long lUserId);
+}
+class UserService implements IUserService{
+
+	public String getUserNameByID(long lUserId) {
+		return "userName"+lUserId;
 	}
+
 }
